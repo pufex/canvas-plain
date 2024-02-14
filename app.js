@@ -7,12 +7,14 @@ canvas.width = window.innerWidth;
 
 class Player {
     constructor(){
-        this.positionY = 20;
-        this.positionX = 20;
-        this.fallingSpeed = 10;
-        this.radius = 10;
-        this.fillColor = "#FF0000"
-        this.strokeColor = "#F00000"
+        this.positionY = 35;
+        this.positionX = 35;
+        this.fallingSpeed = 5;
+        this.movementSpeed = 1;
+        this.width = 25;
+        this.height = 25;
+        this.fillColor = "#FF0000";
+        this.strokeColor = "#F00000";
     };
 }
 
@@ -20,65 +22,104 @@ class Area {
     constructor(codedPlain){
         this.arena = codedPlain;
         this.arenaHeight = codedPlain.length;
-        this.arenaWidth = 200;
-        this.blockWidth = 5;
-        this.blockHeight = 5;
-        this.obstacleColor = "#FFFFFF";
+        this.arenaWidth = codedPlain[0].length;
+        this.blockWidth = 25;
+        this.blockHeight = 25;
+        this.spaceColor = "#0000FF";
+        this.obstacleColor = "#00FF00";
+        this.trapColor = "#FF0000";
     };
 }
 
 class Game{
-    constructor(levelFirst){
+    constructor(arena){
         this.player = new Player();
-        this.obstacle = new Area(levelFirst);
-        this.renderObstacle = function (obstacle){
+        this.area = new Area(arena);
+        this.drawBlock = function (x,y,w,h,c){
             ctx.save();
-            ctx.fillStyle = obstacle.color;
-            ctx.translate(obstacle.startX, obstacle.startY);
-            ctx.fillRect(0, 0, obstacle.width, obstacle.height);
-            ctx.closePath();
+            ctx.fillStyle = c;
+            ctx.translate(x, y);
+            ctx.fillRect(0, 0, w, h);
             ctx.restore();
         }
-        this.gravity = function (obstacle, player){
-            let fallingSpeed = 5;
-            if(player.positionY+fallingSpeed < obstacle.startY){
-                player.positionY += fallingSpeed;
+        this.renderArea = function (area){
+
+            for(let i = 0; i < area.arenaHeight; i++){
+                for(let j = 0; j < area.arenaWidth; j++){
+                    switch(area.arena[i][j]){
+                        case "P":
+                            this.drawBlock(j*area.blockWidth, i*area.blockHeight, area.blockWidth, area.blockHeight, area.spaceColor);
+                            console.log("P");
+                            break;
+                        case 'O':
+                            this.drawBlock(j*area.blockWidth, i*area.blockHeight, area.blockWidth, area.blockHeight, area.obstacleColor);
+                            console.log("O");
+                            break;
+                        case 'T':
+                            this.drawBlock(j*area.blockWidth, i*area.blockHeight, area.blockWidth, area.blockHeight, area.trapColor);
+                            console.log("T");
+                            break;
+                    }
+                }
             }
-            return player;
+           
+        };
+        this.gravity = function(area, player){
+            if(area.arena[Math.floor((player.positionY+player.height)/area.blockHeight)][Math.floor((player.positionX+player.width)/area.blockWidth)] == "P"){
+                player.positionY += player.fallingSpeed;
+            }
+        };
+        this.movement = function(area, player){
+            window.addEventListener("keydown", (event) =>{
+                switch(event.key){
+                    case "ArrowLeft":
+                        if(area.arena[Math.floor((player.positionY+player.height)/area.blockHeight)][Math.floor((player.positionX)/area.blockWidth)] != "O"){
+                            player.positionX -= player.movementSpeed;
+                        }   
+                        break;
+                    case "ArrowRight":
+                        if(area.arena[Math.floor((player.positionY+player.height)/area.blockHeight)][Math.floor((player.positionX)/area.blockWidth)] != "O"){
+                            player.positionX += player.movementSpeed;
+                        }   
+                        break;
+                    case "ArrowDown":
+                        if(area.arena[Math.floor((player.positionY+player.height)/area.blockHeight)][Math.floor((player.positionX)/area.blockWidth)] != "O"){
+                            player.positionY -= player.movementSpeed;
+                        }   
+                        break;
+                    case "ArrowUp":
+                        if(area.arena[Math.floor((player.positionY+player.height)/area.blockHeight)][Math.floor((player.positionX)/area.blockWidth)] != "O"){
+                            player.positionY -= player.movementSpeed;
+                        }   
+                        break;
+                }
+            })
         }
-        this.renderPlayer = function (obstacle, player){
-            this.gravity(this.obstacle, player);
+        this.renderPlayer = function (area, player){
             ctx.save();
             ctx.fillStyle = player.fillColor;
             ctx.strokeStyle = player.strokeColor;
-            ctx.translate(player.positionX, player.positionY);
-            ctx.beginPath();
-            ctx.arc(0, -player.radius, player.radius, 0, Math.PI*2, false);
-            ctx.fill();
-            ctx.stroke();
-            ctx.closePath();
+            this.movement(area, player);
+            this.gravity(area, player);
+            ctx.fillRect(player.positionX, player.positionY, player.width, player.height);
             ctx.restore();
-
-            return player
         }
+    }
+    initiateGame = function (){
+        ctx.clearRect(0,0,canvas.height, canvas.width);
+        this.renderArea(this.area, this.player);
+        this.renderPlayer(this.area, this.player);
+    }
+};
 
-    };
-    setScene(){
-        ctx.clearRect(0, 0, canvas.height, canvas.width);
-        this.renderArena(this.obstacle);
-        this.renderPlayer(this.obstacle, this.player);
-        this.player = this.renderPlayer();
-    };
-}
-console.log(localStorage.getItem("level1"));
-
-let levelFirst = [];
-const game = new Game([]);
+let firstArea = JSON.parse(localStorage.getItem("level1"));
+const game = new Game(firstArea);
 
 const renderGame = () =>{
-    setInterval(() => {
-        game.setScene();
-    }, 0);
+    setInterval(() =>{
+        game.initiateGame();
+    }, 100)
+
 }
 
 const beginButton = document.querySelector("#begin-game");
@@ -88,7 +129,7 @@ beginButton.addEventListener("click", () => {
     renderGame();
 })
 
-const options = ["X", "O", "T"];
+const options = ["P", "O", "T"];
 let chosenOption = options[1];
 
 const arenaDesigning = (w,h) =>{
@@ -98,19 +139,19 @@ const arenaDesigning = (w,h) =>{
             row.remove();
         })
     }
-
+    if(firstArea == null) firstArea = [];
 
     const newPlain = document.querySelector(".edit-plain")
 
-    if(levelFirst.length == h && levelFirst[0].length == w){
+    if(firstArea.length == h && firstArea[0].length == w){
         for(let i = 0; i < h; i++){
             const row = document.createElement("div");
             row.classList.add("edit-row");
             for(let j = 0; j < w; j++){
                 const cell = document.createElement("span");
                 row.appendChild(cell);
-                switch(levelFirst[i][j]){
-                    case 'X':
+                switch(firstArea[i][j]){
+                    case 'P':
                         cell.classList.add("edit-empty");
                         break;
                     case 'O':
@@ -123,24 +164,24 @@ const arenaDesigning = (w,h) =>{
                 cell.addEventListener("click", () =>{
                     switch(chosenOption){
                         default: break;
-                        case 'X': 
-                            cell.innerText = "X";
+                        case 'P': 
+                            cell.innerText = "P";
                             cell.classList.add("edit-empty");
-                            console.log(levelFirst.length);
-                            levelFirst[i][j] = "X";
-                            break;
-                            case 'O': 
+                            console.log(firstArea.length);
+                            firstArea[i][j] = "P";
+                        break;
+                        case 'O': 
                             cell.innerText = "O";
-                            console.log(levelFirst);
+                            console.log(firstArea);
                             cell.classList.add("edit-obstacle");
-                            levelFirst[i][j] = "O";
-                            break;
-                            case 'T': 
+                            firstArea[i][j] = "O";
+                        break;
+                        case 'T': 
                             cell.innerText = "T";
-                            console.log(levelFirst.length);
+                            console.log(firstArea.length);
                             cell.classList.add("edit-trap");
-                            levelFirst[i][j] = "T";
-                            break;
+                            firstArea[i][j] = "T";
+                        break;
                     }
                     arenaDesigning(w, h);
                 })
@@ -149,18 +190,18 @@ const arenaDesigning = (w,h) =>{
         }  
     }else{
         console.log("else");
-        levelFirst = []
+        firstArea = []
         for(let i = 0; i < h; i++){
-            levelFirst.push([]);
+            firstArea.push([]);
             for(let j = 0; j < w; j++){
-                levelFirst[i].push("X");
+                firstArea[i].push("P");
             }
         }
 
-        arenaDesigning(w,h,levelFirst);
+        arenaDesigning(w,h,firstArea);
     }
-    localStorage.setItem("level1", JSON.stringify(levelFirst))
-    console.log(levelFirst);
+    localStorage.setItem("level1", JSON.stringify(firstArea))
+    console.log(firstArea);
 }
 
 const editForm = document.querySelector(".edit-form");
