@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+</head>
+<body>
+    <canvas id="gameboard">
+    </canvas>
+    <div class="menu">
+        <div class="hide-box">
+            <div class="hide-box-marked hidden">
+                
+            </div>
+        </div>
+        <div class="menu-top">
+            <img class="logo" src="./logo.svg" alt="">
+            <h1>
+                Welcome to The Platform!
+            </h1>
+            <div class="button" id="begin-game">Play now!</div>
+        </div>
+        <form class="menu-middle edit-form hidden">
+            <h1>
+                Initiate levelFirst designing
+            </h1>
+            <div class="inputs">
+                <input type="text" class="height" placeholder="height" value="20">
+                <input type="text" class="width" placeholder="width" value="20">
+                <input type="submit" value="Submit">
+            </div>
+        </form>
+        <div class="menu-bottom">
+            <div class="links-labels">
+                <label for="">My socials</label>
+                <label for="">Email me!</label>
+            </div>
+            <div class="links">
+                <div class="links-left">
+                    <a class="social-link" href="https://twitter.com" alt="link to twitter">
+                        <img class="social-icon" src="github.svg" alt="twitter icon">
+                    </a>
+                    <a class="social-link" href="https://github.com/pufex" alt="link to my github">
+                        <img class="social-icon" src="twitter-logo-2.svg" alt="github icon">
+                    </a>
+                </div>
+                <div class="links-right">
+                    <a href="mailto:j.abram@wp.pl">
+                        📧
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
